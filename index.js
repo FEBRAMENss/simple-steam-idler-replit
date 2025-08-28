@@ -1,21 +1,31 @@
-const steamUser = require('steam-user');
-const steamTotp = require('steam-totp');
-const keep_alive = require('./keep_alive.js')
+const client = require('steam-user');
+const totp = require('steam-totp');
+const keep_alive = require('./keep_alive.js');
 
-var username = process.env.username;
-var password = process.env.password;
-var shared_secret = process.env.shared;
+// Credenciais via variáveis de ambiente
+var acc = process.env.username;
+var pass = process.env.password;
+var secret = process.env.shared;
 
-var games = [730];  // Enter here AppIDs of the needed games
-var status = 1;  // 1 - online, 7 - invisible
+// Jogos a manter ativos (AppIDs)
+var apps = [730];
+var mode = 1; // 1 - online, 7 - invisível
 
+// Inicializar cliente
+let session = new client();
+session.logOn({
+    "accountName": acc,
+    "password": pass,
+    "twoFactorCode": totp.generateAuthCode(secret)
+});
 
-user = new steamUser();
-user.logOn({"accountName": username, "password": password, "twoFactorCode": steamTotp.generateAuthCode(shared_secret)});
-user.on('loggedOn', () => {
-	if (user.steamID != null) console.log(user.steamID + ' - Successfully logged on');
-	user.setPersona(status);               
-	user.gamesPlayed(games);
+// Quando entrar
+session.on('loggedOn', () => {
+    if (session.steamID != null) 
+        console.log(session.steamID + ' - Sessão iniciada com sucesso');
+
+    session.setPersona(mode);               
+    session.gamesPlayed(apps);
 });
 
 
